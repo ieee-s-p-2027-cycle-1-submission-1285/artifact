@@ -1,16 +1,12 @@
 name = "dylean"
 version = "0.1.0"
-defaultTargets = ["dylean"]
-
-[[lean_lib]]
-name = "DY"
+defaultTargets = ["Comparse", "DY", "Examples"]
 
 [[lean_lib]]
 name = "Comparse"
 
 [[lean_lib]]
-name = "Examples"
+name = "DY"
 
-[[lean_exe]]
-name = "dylean"
-root = "Main"
+[[lean_lib]]
+name = "Examples"
