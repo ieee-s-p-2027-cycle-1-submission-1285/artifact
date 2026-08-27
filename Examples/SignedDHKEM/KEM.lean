@@ -367,6 +367,8 @@ end Broken
 
 section Invariants
 
+section Definition
+
 variable [ExecTraceTypes] [ProofTraceTypes]
 variable [BytesFunctor] [BytesFunctor.Has KEM.SubF]
 variable [ExecTraceTypes.Has Broken.ExecEntryT]
@@ -387,10 +389,15 @@ def Pk.invariants: Bytes.PartialInvariants Pk.SubF where
     (rec sk) tr
 
 public
-def Pk.invariantsProofs [BytesInvariants]: Bytes.PartialInvariantsProofs Pk.invariants where
+theorem Pk.invariantsProofs [BytesInvariants]: Bytes.PartialInvariantsProofs Pk.invariants where
+
+end Definition
 
 section PkLemmas
 
+variable [ExecTraceTypes] [ProofTraceTypes]
+variable [BytesFunctor] [BytesFunctor.Has KEM.SubF]
+variable [ExecTraceTypes.Has Broken.ExecEntryT]
 variable [BytesInvariants] [BytesInvariants.Has Pk.invariants]
 
 @[simp]
@@ -429,10 +436,7 @@ end KEM
 
 section ExtractKemPk
 
-variable [ExecTraceTypes] [ProofTraceTypes]
-variable [BytesFunctor]
-variable [BytesFunctor.Has KEM.SubF]
-variable [ExecTraceTypes.Has KEM.Broken.ExecEntryT]
+variable [BytesFunctor] [BytesFunctor.Has KEM.SubF]
 
 noncomputable
 def KEM.extractKemSk (pk: Bytes): Option Bytes :=
@@ -449,7 +453,10 @@ theorem KEM.kemPk_extractKemSk (b: Bytes):
   simp [extractKemSk, KEM.kemPk]
   grind
 
+variable [ExecTraceTypes] [ProofTraceTypes]
+
 theorem KEM.extractKemSk.preserves_WellFormed
+  [ExecTraceTypes.Has KEM.Broken.ExecEntryT]
   [BytesInvariants] [BytesInvariants.Has KEM.Pk.invariants]
 : ExtractPreservesWellFormed KEM.extractKemSk
 := by
@@ -477,6 +484,7 @@ grind_pattern Bytes.KemSkHasUsage_kemPk => (KEM.kemPk sk).KemSkHasUsage skUsg tr
 public
 theorem Bytes.KemSkHasUsage_later
   [BytesInvariants]
+  [ExecTraceTypes.Has KEM.Broken.ExecEntryT]
   [BytesInvariants.Has KEM.Pk.invariants]
   [GetUsageLater] [GetLabelLater]
   (b: Bytes) (usg: Usage) (tr1 tr2: ProofTrace)
@@ -493,6 +501,7 @@ grind_pattern Bytes.KemSkHasUsage_later => tr1 ≤ tr2, b.KemSkHasUsage usg tr1
 public
 theorem Bytes.KemSkHasUsage_later_fast
   [BytesInvariants] [BytesInvariantsProofs]
+  [ExecTraceTypes.Has KEM.Broken.ExecEntryT]
   [BytesInvariants.Has KEM.Pk.invariants]
   (b: Bytes) (usg: Usage) (tr1 tr2: ProofTrace)
   : b.Invariant tr1 →
@@ -514,6 +523,7 @@ def Bytes.kemSkLabel
 public
 theorem Bytes.kemSkLabel_kemPk
   [BytesInvariants]
+  [ExecTraceTypes.Has KEM.Broken.ExecEntryT]
   [BytesInvariants.Has KEM.Pk.invariants]
   (sk: Bytes) (tr: ProofTrace)
   : (KEM.kemPk sk).kemSkLabel tr = sk.label tr
@@ -526,6 +536,7 @@ grind_pattern Bytes.kemSkLabel_kemPk => (KEM.kemPk sk).kemSkLabel tr
 public
 theorem Bytes.kemSkLabel_later
   [BytesInvariants]
+  [ExecTraceTypes.Has KEM.Broken.ExecEntryT]
   [BytesInvariants.Has KEM.Pk.invariants]
   [GetLabelLater]
   (b: Bytes) (tr1 tr2: ProofTrace)
@@ -541,6 +552,7 @@ grind_pattern Bytes.kemSkLabel_later => tr1 ≤ tr2, b.kemSkLabel tr1
 public
 theorem Bytes.kemSkLabel_later_fast
   [BytesInvariants] [BytesInvariantsProofs]
+  [ExecTraceTypes.Has KEM.Broken.ExecEntryT]
   [BytesInvariants.Has KEM.Pk.invariants]
   (b: Bytes) (tr1 tr2: ProofTrace)
   : b.Invariant tr1 →
@@ -556,11 +568,13 @@ namespace KEM
 
 section Invariants
 
+section Definition
+
 variable [ExecTraceTypes] [ProofTraceTypes]
-variable [BytesFunctor] [BytesFunctor.Has KEM.SubF]
+variable [BytesFunctor]
 
 public
-def Encap.invariants: Bytes.PartialInvariants Encap.SubF where
+def Encap.invariants [BytesFunctor.Has KEM.SubF]: Bytes.PartialInvariants Encap.SubF where
   well_formed := fun {pk, entropy} rec tr =>
       (rec pk) tr ∧
       (rec entropy) tr
@@ -586,7 +600,7 @@ def Encap.invariants: Bytes.PartialInvariants Encap.SubF where
       )
 
 public
-def Encap.invariantsProofs [BytesInvariants] [ExecTraceTypes.Has Broken.ExecEntryT] [BytesInvariants.Has Pk.invariants]: Bytes.PartialInvariantsProofs Encap.invariants where
+theorem Encap.invariantsProofs [BytesInvariants] [BytesFunctor.Has KEM.SubF] [ExecTraceTypes.Has Broken.ExecEntryT] [BytesInvariants.Has Pk.invariants]: Bytes.PartialInvariantsProofs Encap.invariants where
 
 public
 def SharedSecret.invariants: Bytes.PartialInvariants SharedSecret.SubF where
@@ -603,7 +617,9 @@ def SharedSecret.invariants: Bytes.PartialInvariants SharedSecret.SubF where
     (rec entropy) tr
 
 public
-def SharedSecret.invariantsProofs [BytesInvariants]: Bytes.PartialInvariantsProofs SharedSecret.invariants where
+theorem SharedSecret.invariantsProofs [BytesInvariants]: Bytes.PartialInvariantsProofs SharedSecret.invariants where
+
+end Definition
 
 #combine [BytesFunctor.Has SubF] [ExecTraceTypes.Has Broken.ExecEntryT] into
   BytesInvariants,
@@ -615,6 +631,8 @@ from
 
 section EncapLemmas
 
+variable [ExecTraceTypes] [ProofTraceTypes]
+variable [BytesFunctor] [BytesFunctor.Has KEM.SubF]
 variable [ExecTraceTypes.Has Broken.ExecEntryT]
 variable [BytesInvariants] [BytesInvariants.Has KEM.invariants]
 
@@ -639,6 +657,8 @@ end EncapLemmas
 
 section DecapLemmas
 
+variable [ExecTraceTypes] [ProofTraceTypes]
+variable [BytesFunctor] [BytesFunctor.Has KEM.SubF]
 variable [ExecTraceTypes.Has Broken.ExecEntryT]
 variable [BytesInvariants] [BytesInvariants.Has KEM.invariants]
 
@@ -877,7 +897,6 @@ theorem breakKemPk.spec (msgHandle: Nat)
   unfold breakKemPk
   step
   step by simp [ProtocolEvent.EventInv.invariant]
-  step
   step
   step
   grind

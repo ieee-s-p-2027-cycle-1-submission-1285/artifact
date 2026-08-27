@@ -8,7 +8,7 @@ namespace DY.Example.SignedDHKEM
 
 open DY.Comparse
 
--- TODO: this whole section should be meta-programmable
+-- Future work: the following section is boilerplate that could be meta-programmed
 public section ProofTraceConfig
 
 class HasProofTrace extends HasExecTrace where
@@ -90,7 +90,7 @@ theorem mkLongTermUsage_inj:
 instance SignedDHKEMSignPred
   : Signature'.SignPred
 where
-  pred skUsg vk msg tr :=
+  pred skUsg _vk msg tr :=
     ∃ server, skUsg = mkLongTermUsage server ∧ (
       match parse msg with
       | none => False
@@ -98,7 +98,7 @@ where
         ∃ ySk entropy,
           let dhss := DiffieHellman'.dh msg.xPk ySk
           let encapResult := KEM.kemEncap msg.zPk entropy
-          msg.yPk = DiffieHellman'.dh_pk ySk ∧
+          msg.yPk = DiffieHellman'.dhPk ySk ∧
           ySk.label tr = (serverLabel server msg.xPk msg.yPk msg.zPk).join (DiffieHellman'.Broken.label msg.yPk) ∧
           msg.ct = encapResult.fst ∧
           entropy.WellFormed tr ∧
@@ -119,11 +119,11 @@ where
     intro _ _ _ _ _ _ _ _ _ _ _
     intro ⟨ server, h ⟩
     exists server
-    grind [DiffieHellman'.dh_pk.WellFormed]
+    grind [DiffieHellman'.dhPk.WellFormed]
 
 end BytesInvariants
 
--- TODO: this whole section should be meta-programmable
+-- Future work: the following section is boilerplate that could be meta-programmed
 public section BytesInvariantsConfig
 
 class HasBytesInvariants extends HasProofTrace where
@@ -157,7 +157,7 @@ instance ClientInitiateDHStateInv : PersistentLocalState.CompromisableLocalState
 where
   invariant me st tr :=
     let { xPk, xSk } := st
-    xPk = DiffieHellman'.dh_pk xSk ∧
+    xPk = DiffieHellman'.dhPk xSk ∧
     xPk.Publishable tr ∧
     xSk.Invariant tr ∧
     xSk.label tr = (clientDhLabel me xPk).join (DiffieHellman'.Broken.label xPk)
@@ -266,7 +266,7 @@ instance SignedDHKEMEventInv : ProtocolEvent.EventInv (SignedDHKEMEvent)
 where
   invariant tr ev :=
     match ev with
-    | .ClientInitiateEvent client xPk zPk => (
+    | .ClientInitiateEvent client xPk _zPk => (
       xPk.Invariant tr ∧
       xPk.dhSkLabel' tr = (clientDhLabel client xPk).join (DiffieHellman'.Broken.label xPk)
     )
@@ -285,7 +285,7 @@ where
 
 end TraceInvariant
 
--- TODO: this whole section should be meta-programmable
+-- Future work: the following section is boilerplate that could be meta-programmed
 public section TraceInvariantConfig
 
 class HasTraceInvariant extends HasBytesInvariants where
@@ -346,7 +346,7 @@ theorem Client.initiate.spec (me: Participant):
     (fun _ _ => True)
 := by
   unfold Client.initiate
-  step with ⟨ fun xSk => (clientDhLabel me (DiffieHellman'.dh_pk xSk)).join (DiffieHellman'.Broken.label (DiffieHellman'.dh_pk xSk)), Usage.nothing ⟩
+  step with ⟨ fun xSk => (clientDhLabel me (DiffieHellman'.dhPk xSk)).join (DiffieHellman'.Broken.label (DiffieHellman'.dhPk xSk)), Usage.nothing ⟩
   step
   step with ⟨ fun zSk => (clientKemLabel me (KEM.kemPk zSk)).join (KEM.Broken.label (KEM.kemPk zSk)), Usage.nothing ⟩
   step
@@ -388,10 +388,10 @@ theorem Server.receive.spec (me: Participant) (skHandle: Nat) (msgHandle: Nat):
   step_intro
   step_intro
   step
-  step with ⟨ fun ySk => (serverLabel me xPk (DiffieHellman'.dh_pk ySk) zPk).join (DiffieHellman'.Broken.label (DiffieHellman'.dh_pk ySk)), Usage.nothing ⟩
+  step with ⟨ fun ySk => (serverLabel me xPk (DiffieHellman'.dhPk ySk) zPk).join (DiffieHellman'.Broken.label (DiffieHellman'.dhPk ySk)), Usage.nothing ⟩
   step
   step
-  step with ⟨ fun entropy => (serverLabel me xPk (DiffieHellman'.dh_pk ySk) zPk).join (zPk.kemSkLabel tr), Usage.nothing ⟩
+  step with ⟨ fun entropy => (serverLabel me xPk (DiffieHellman'.dhPk ySk) zPk).join (zPk.kemSkLabel tr), Usage.nothing ⟩
   step
   dsimp -zeta at *
   hoist
@@ -460,7 +460,6 @@ theorem Client.finish.spec (me: Participant) (server: Participant) (pkHandle: Na
   step by
     simp_all only [PersistentLocalState.LocalStateInv.invariant, Label.canFlow]
     grind
-  step
   grind
 
 @[instance]
@@ -485,6 +484,8 @@ section ReachabilityImpliesInvariant
 
 variable [HasTraceInvariant]
 
+-- Future work: the following section is boilerplate that could be meta-programmed
+section
 public instance: ReachableImpliesInvariant Client.initiate.reachability := .mk (fun me => Client.initiate.spec me)
 public instance: ReachableImpliesInvariant Server.receive.reachability := .mk (fun (me, skHandle, msgHandle) => Server.receive.spec me skHandle msgHandle)
 public instance: ReachableImpliesInvariant Client.finish.reachability := .mk (fun (me, server, pkHandle, msgHandle, dhStHandle, kemStHandle) => Client.finish.spec me server pkHandle msgHandle dhStHandle kemStHandle)
@@ -492,6 +493,7 @@ public instance: ReachableImpliesInvariant ClientInitiateDHState.compromise.reac
 public instance: ReachableImpliesInvariant ClientInitiateKEMState.compromise.reachability := .mk (fun (stHandle) => ClientInitiateKEMState.compromise.spec stHandle)
 public instance: ReachableImpliesInvariant ClientFinishState.compromise.reachability := .mk (fun (stHandle) => ClientFinishState.compromise.spec stHandle)
 public instance: ReachableImpliesInvariant ServerFinishState.compromise.reachability := .mk (fun (stHandle) => ServerFinishState.compromise.spec stHandle)
+end
 
 #combine into ReachabilityTheorem from
   Network,

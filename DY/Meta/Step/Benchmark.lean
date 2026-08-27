@@ -1,3 +1,5 @@
+module
+
 import DY.Trace
 import DY.Bytes
 import DY.Meta
@@ -10,6 +12,10 @@ variable [ExecTraceTypes] [ProofTraceTypes] [TraceInvariant]
 variable [BytesFunctor]
 variable [BytesInvariants]
 variable [BytesInvariantsProofs]
+
+section Axiomatization
+
+set_option warn.sorry false
 
 def send_message (b:Bytes) : Traceful Unit := sorry
 def receive_message (n:Nat) : Traceful Bytes := sorry
@@ -29,6 +35,7 @@ instance:
   where
     pf := sorry
 
+end Axiomatization
 
 def test: Traceful Unit := do
   let msg0 ← receive_message 0
@@ -119,7 +126,7 @@ theorem test.spec:
     (fun _ => True)
     (fun _ _ => True)
 := by
-  set_option trace.profiler true in
+  -- set_option trace.profiler true in
   apply HoareTriple.mk
   unfold test
   step

@@ -26,7 +26,6 @@ theorem Label.isCorruptLater_grind (l: Label) (tr1 tr2: ExecTrace):
 @[ext]
 public
 theorem Label.ext
-  [ExecTraceTypes]
   (l1 l2: Label)
   : (∀ tr: ExecTrace, l1.isCorrupt tr = l2.isCorrupt tr) →
   l1 = l2
@@ -53,7 +52,7 @@ theorem Label.canFlowLater (l1: Label) (l2: Label) (tr1 tr2: ExecTrace):
     unfold Label.canFlow
     grind [Trace.le_trans]
 
-@[grind]
+@[grind .]
 public
 theorem canFlowRefl (l: Label) (tr: ExecTrace):
   l.canFlow l tr
@@ -70,5 +69,10 @@ theorem canFlowTrans (l1: Label) (l2: Label) (l3: Label) (tr: ExecTrace):
   := by
     unfold Label.canFlow
     grind
+
+public
+abbrev Label.equivalent (l1: Label) (l2: Label) (tr: ExecTrace): Prop :=
+  l1.canFlow l2 tr ∧
+  l2.canFlow l1 tr
 
 end DY

@@ -26,7 +26,7 @@ deriving DecidableEq
 
 end MerkleTreeStructures
 
--- this section could be metaprogrammed
+-- Future work: the following section is boilerplate that could be meta-programmed
 section MerkleTreeFormats
 
 def MerkleTreeNode.internalType (Bytes α: Type) : Fin 3 → Type
@@ -45,11 +45,11 @@ def MerkleTreeNode.mf
   : Comparse.ExtensibleMessageFormat Bytes (MerkleTreeNode Bytes α)
 :=
   .triviallyIsomorphic (.sigma (.fin8 3 (by decide)) (internalType.mf Bytes α mf))
-  (fun ⟨id, x⟩ =>
-    match id, x with
-    | 0, x => MerkleTreeNode.Empty
-    | 1, x => MerkleTreeNode.Leaf x
-    | 2, (b1, b2) => MerkleTreeNode.Internal b1 b2
+  (fun x =>
+    match x with
+    | ⟨ 0, () ⟩ => MerkleTreeNode.Empty
+    | ⟨ 1, x ⟩ => MerkleTreeNode.Leaf x
+    | ⟨ 2, (b1, b2) ⟩ => MerkleTreeNode.Internal b1 b2
   )
   (fun x =>
     match x with
@@ -224,7 +224,7 @@ end
 /-
   Sanity check: computing the root hash from an inclusion proof yields the correct root hash.
 -/
-def inclusionProofToRootHash_mkInclusionProof_correct
+theorem inclusionProofToRootHash_mkInclusionProof_correct
   {Bytes: Type}
   [Comparse.BytesLike Bytes] [DY.Hash.CanHash Bytes]
   {α: Type} (mf: Comparse.ExtensibleMessageFormat Bytes α)
@@ -243,7 +243,7 @@ def inclusionProofToRootHash_mkInclusionProof_correct
   This shows why when checking the inclusion proof,
   we must check that the index is in bounds of the (claimed) list length.
 -/
-def inclusionProofToRootHash_mkInclusionProof_outOfBounds
+theorem inclusionProofToRootHash_mkInclusionProof_outOfBounds
   {Bytes: Type}
   [Comparse.BytesLike Bytes] [DY.Hash.CanHash Bytes]
   {α: Type} (mf: Comparse.ExtensibleMessageFormat Bytes α)
@@ -270,6 +270,7 @@ deriving Decidable
 
 end MerkleTreeDefs
 
+-- Future work: the following section is boilerplate that could be meta-programmed
 public section ExecBytesConfig
 
 class HasExecBytes where
@@ -340,9 +341,10 @@ deriving DecidableEq
 
 end Structures
 
+-- Future work: the following section is boilerplate that could be meta-programmed
 public section Formats
 
-open Comparse
+open DY.Comparse
 
 variable [HasExecBytes]
 
@@ -416,6 +418,7 @@ grind_pattern [grind_later] ServerState.IsWellFormed_eq => IsWellFormed pre x tr
 
 end Formats
 
+-- Future work: the following section is boilerplate that could be meta-programmed
 public section ExecTraceConfig
 
 class HasExecTrace extends HasExecBytes where
@@ -496,6 +499,7 @@ public section Reachability
 
 variable [HasExecTrace]
 
+-- Future work: the following section is boilerplate that could be meta-programmed
 @[expose] public section
 def Server.authenticate.reachability: ReachabilityConfig := .make (fun (server, msgHandles, skHandle) => Server.authenticate server msgHandles skHandle)
 def Server.proveInclusion.reachability: ReachabilityConfig := .make (fun (server, i, stHandle) => Server.proveInclusion server i stHandle)

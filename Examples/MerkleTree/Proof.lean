@@ -129,6 +129,7 @@ theorem checkInclusionProof_reduceHashCollision_correct
 
 end MerkleTreeProof
 
+-- Future work: the following section is boilerplate that could be meta-programmed
 public section ProofTraceConfig
 
 class HasProofTrace extends HasExecTrace where
@@ -155,8 +156,7 @@ variable [HasProofTrace]
 structure LongTermKeyUsage where
   principal: Participant
 
-open Comparse in
-instance : ParseableSerializeable LongTermKeyUsage := .make <|
+instance : Comparse.ParseableSerializeable LongTermKeyUsage := .make <|
   .triviallyIsomorphic
     (.string)
     (fun principal => { principal })
@@ -195,6 +195,7 @@ where
 
 end BytesInvariants
 
+-- Future work: the following section is boilerplate that could be meta-programmed
 public section BytesInvariantsConfig
 
 class HasBytesInvariants extends HasProofTrace where
@@ -251,6 +252,7 @@ where
 
 end TraceInvariant
 
+-- Future work: the following section is boilerplate that could be meta-programmed
 public section TraceInvariantConfig
 
 class HasTraceInvariant extends HasBytesInvariants where
@@ -395,7 +397,6 @@ where finally
     step by simp [ProtocolEvent.EventInv.invariant]
     step_intro
     step
-    step
     simp_all
     grind
 
@@ -418,7 +419,6 @@ theorem Server.proveInclusion.spec
   have: ∀ element, element ∈ mkInclusionProof .bytes elements i (by grind) → element.Publishable tr := by
     have := pred_mkInclusionProof .bytes elements i (by grind) (Bytes.Publishable · tr) (by simp [Bytes.Publishable]) (by simp_all [PersistentLocalState.LocalStateInv.invariant]; grind)
     grind
-  step
   step
   grind
 
@@ -456,10 +456,13 @@ section ReachabilityImpliesInvariant
 
 variable [HasTraceInvariant]
 
+-- Future work: the following section is boilerplate that could be meta-programmed
+section
 public instance: ReachableImpliesInvariant Server.authenticate.reachability := .mk (fun (server, msgHandles, skHandle) => Server.authenticate.spec server msgHandles skHandle)
 public instance: ReachableImpliesInvariant Server.proveInclusion.reachability := .mk (fun (server, i, stHandle) => Server.proveInclusion.spec server i stHandle)
 public instance: ReachableImpliesInvariant Client.checkInclusion.reachability := .mk (fun (server, msgSigHandle, msgInclHandle, pkHandle) => Client.checkInclusion.spec server msgSigHandle msgInclHandle pkHandle)
 public instance: ReachableImpliesInvariant ServerState.compromise.reachability := .mk (fun (stHandle) => ServerState.compromise.spec stHandle)
+end
 
 #combine into ReachabilityTheorem from
   Network,

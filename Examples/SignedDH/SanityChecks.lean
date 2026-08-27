@@ -27,6 +27,7 @@ def honestAttacker: Traceful Unit := do
 
 #guard (honestAttacker.run Trace.nil).fst = some ()
 
+-- Future work: we could design a step-like tactic to automate this proof
 theorem honestAttacker_PreservesReachability
   : honestAttacker.PreservesReachability reachability (fun _ => True) (fun _ _ => True)
 := by
@@ -112,6 +113,7 @@ def compromiseClientEphAttacker: Traceful Unit := do
 
 #guard (compromiseClientEphAttacker.run Trace.nil).fst = some ()
 
+-- Future work: we could design a step-like tactic to automate this proof
 theorem compromiseClientEphAttacker_PreservesReachability
   : compromiseClientEphAttacker.PreservesReachability reachability (fun _ => True) (fun _ _ => True)
 := by
@@ -221,7 +223,7 @@ def compromiseSigKeyAttacker: Traceful Unit := do
   let xPk := msgClient.xPk
 
   let ySk := Literal.literalToBytes "00000000000000000000000000000000".toByteArray
-  let yPk := DiffieHellman.dh_pk ySk
+  let yPk := DiffieHellman.dhPk ySk
   let k := Hash.hash (DiffieHellman.dh xPk ySk)
   let sigNonce := Literal.literalToBytes "00000000000000000000000000000000".toByteArray
   let sig := Signature.sign sigKey sigNonce (Comparse.serialize ({xPk, yPk}: SigInput))
@@ -232,6 +234,7 @@ def compromiseSigKeyAttacker: Traceful Unit := do
 
 #guard (compromiseSigKeyAttacker.run Trace.nil).fst = some ()
 
+-- Future work: we could design a step-like tactic to automate this proof
 theorem compromiseSigKeyAttacker_PreservesReachability
   : compromiseSigKeyAttacker.PreservesReachability reachability (fun _ => True) (fun _ _ => True)
 := by
@@ -287,7 +290,7 @@ theorem compromiseSigKeyAttacker_PreservesReachability
   · assumption
   · simp only [Comparse.AttackerKnows_serialize, ServerMessage.IsWellFormed_eq]
     apply And.intro
-    · apply DiffieHellman.attacker_knows_dh_pk
+    · apply DiffieHellman.attacker_knows_dhPk
       apply Literal.attacker_knows_literalToBytes
     apply Signature.attacker_knows_sign
     · grind (ematch := 10)
@@ -295,7 +298,7 @@ theorem compromiseSigKeyAttacker_PreservesReachability
     · simp only [Comparse.AttackerKnows_serialize, SigInput.IsWellFormed_eq]
       apply And.intro
       · grind
-      · apply DiffieHellman.attacker_knows_dh_pk
+      · apply DiffieHellman.attacker_knows_dhPk
         apply Literal.attacker_knows_literalToBytes
   intro msgServerHandle tr h_post h_tr h_le
 

@@ -12,11 +12,10 @@ namespace DY.DiffieHellman'
 
 public
 class CanDH (Bytes: Type u) where
-  -- TODO: naming convention
-  dh_pk: (sk: Bytes) → Bytes
+  dhPk: (sk: Bytes) → Bytes
   dh: (pk: Bytes) → (sk: Bytes) → Bytes
 
-export CanDH (dh_pk)
+export CanDH (dhPk)
 export CanDH (dh)
 
 section Constructors
@@ -129,7 +128,7 @@ abbrev Dh.SubF.pack (x: Dh.SubF Bytes) := BytesView.pack x
 
 public
 instance: CanDH Bytes where
-  dh_pk sk :=
+  dhPk sk :=
     ({sk}: DhPk.SubF Bytes).pack
 
   dh pk sk :=
@@ -145,22 +144,22 @@ instance: CanDH Bytes where
 public
 theorem dh_commutes
   (sk1 sk2: Bytes)
-  : dh (dh_pk sk1) sk2 = dh (dh_pk sk2) sk1
+  : dh (dhPk sk1) sk2 = dh (dhPk sk2) sk1
 := by
-  simp only [dh_pk, dh, BytesView.view_pack]
+  simp only [dhPk, dh, BytesView.view_pack]
   grind
 
-grind_pattern dh_commutes => dh (dh_pk sk1) sk2, dh (dh_pk sk2) sk1
+grind_pattern dh_commutes => dh (dhPk sk1) sk2, dh (dhPk sk2) sk1
 
 end Constructors
 
 section AttackerKnowledge
 
 public
-def dh_pk.attackerKnowledge [BytesFunctor] [BytesFunctor.Has SubF]: SubAttackerKnowledge SubF where
+def dhPk.attackerKnowledge [BytesFunctor] [BytesFunctor.Has SubF]: SubAttackerKnowledge SubF where
   pred p out :=
     ∃ sk,
-      out = dh_pk sk ∧
+      out = dhPk sk ∧
       p sk
 
 public
@@ -171,7 +170,7 @@ def dh.attackerKnowledge [BytesFunctor] [BytesFunctor.Has SubF]: SubAttackerKnow
       Kleene.Forall p [pk, sk]
 
 #combine [BytesFunctor.Has SubF] into attackerKnowledge' from
-  dh_pk,
+  dhPk,
   dh,
 
 variable [BytesFunctor] [BytesFunctor.Has SubF]
@@ -179,14 +178,14 @@ variable [ExecTraceTypes] [BaseAttackerKnowledge]
 variable [AttackerKnowledge] [AttackerKnowledge.Has attackerKnowledge]
 
 public
-theorem attacker_knows_dh_pk
+theorem attacker_knows_dhPk
   (sk: Bytes) (tr: ExecTrace)
   : sk.AttackerKnows tr →
-    (dh_pk sk).AttackerKnows tr
+    (dhPk sk).AttackerKnows tr
 := by
   intro h_inp
-  apply Bytes.AttackerKnows.prove dh_pk.attackerKnowledge
-  simp only [dh_pk.attackerKnowledge]
+  apply Bytes.AttackerKnows.prove dhPk.attackerKnowledge
+  simp only [dhPk.attackerKnowledge]
   grind
 
 public
@@ -219,9 +218,9 @@ public
 theorem dhPkInvert_dhPk
   [BytesFunctor.Has SubF]
   (sk: Bytes)
-  : dhPkInvert (dh_pk sk) = some sk
+  : dhPkInvert (dhPk sk) = some sk
 := by
-  simp only [dh_pk, dhPkInvert]
+  simp only [dhPk, dhPkInvert]
   grind
 
 public
@@ -230,9 +229,9 @@ theorem dhPk_dhPkInvert
   (pk: Bytes)
   : match dhPkInvert pk with
     | none => True
-    | some sk => dh_pk sk = pk
+    | some sk => dhPk sk = pk
 := by
-  simp only [dh_pk, dhPkInvert]
+  simp only [dhPk, dhPkInvert]
   grind
 
 public
@@ -297,6 +296,8 @@ end Broken
 
 section Invariants
 
+section Definition
+
 variable [ExecTraceTypes] [ProofTraceTypes]
 variable [BytesFunctor] [BytesFunctor.Has DiffieHellman'.SubF]
 variable [ExecTraceTypes.Has Broken.ExecEntryT]
@@ -313,46 +314,58 @@ def DhPk.invariants: Bytes.PartialInvariants DhPk.SubF where
     Label.pub
 
   invariant := fun {sk := sk} rec tr =>
-    (sk.label tr).canFlow (Broken.label (dh_pk sk)) tr.erase ∧
+    (sk.label tr).canFlow (Broken.label (dhPk sk)) tr.erase ∧
     (rec sk) tr
 
 public
-def DhPk.invariantsProofs [BytesInvariants]: Bytes.PartialInvariantsProofs DhPk.invariants where
+theorem DhPk.invariantsProofs [BytesInvariants]: Bytes.PartialInvariantsProofs DhPk.invariants where
+
+end Definition
 
 section DhPkLemmas
+
+variable [ExecTraceTypes] [ProofTraceTypes]
+variable [BytesFunctor] [BytesFunctor.Has DiffieHellman'.SubF]
+variable [ExecTraceTypes.Has Broken.ExecEntryT]
 
 variable [BytesInvariants] [BytesInvariants.Has DhPk.invariants]
 
 @[simp]
 public
-theorem dh_pk.WellFormed
+theorem dhPk.WellFormed
   (sk: Bytes) (tr: ProofTrace)
   :
-    (dh_pk sk).WellFormed tr = sk.WellFormed tr
+    (dhPk sk).WellFormed tr = sk.WellFormed tr
 := by
-  simp [dh_pk, Bytes.WellFormed.eq, DhPk.invariants]
+  simp [dhPk, Bytes.WellFormed.eq, DhPk.invariants]
 
 @[simp]
 public
-theorem dh_pk.label
+theorem dhPk.label
   (sk: Bytes) (tr: ProofTrace)
-  : (dh_pk sk).label tr = Label.pub
+  : (dhPk sk).label tr = Label.pub
 := by
-  simp [dh_pk, Bytes.label.eq, DhPk.invariants]
+  simp [dhPk, Bytes.label.eq, DhPk.invariants]
 
 @[simp]
 public
-theorem dh_pk.Invariant
+theorem dhPk.Invariant
   (sk: Bytes) (tr: ProofTrace)
   :
     sk.Invariant tr →
-    (sk.label tr).canFlow (Broken.label (dh_pk sk)) tr.erase →
-    (dh_pk sk).Invariant tr
+    (sk.label tr).canFlow (Broken.label (dhPk sk)) tr.erase →
+    (dhPk sk).Invariant tr
 := by
-  simp [dh_pk, Bytes.Invariant.eq, DhPk.invariants]
+  simp [dhPk, Bytes.Invariant.eq, DhPk.invariants]
   grind
 
 end DhPkLemmas
+
+section Definition
+
+variable [ExecTraceTypes] [ProofTraceTypes]
+variable [BytesFunctor] [BytesFunctor.Has DiffieHellman'.SubF]
+variable [ExecTraceTypes.Has Broken.ExecEntryT]
 
 public
 def Dh.invariants: Bytes.PartialInvariants Dh.SubF where
@@ -374,11 +387,13 @@ def Dh.invariants: Bytes.PartialInvariants Dh.SubF where
       (rec sk) tr
 
 public
-def Dh.invariantsProofs [BytesInvariants] [BytesInvariants.Has DhPk.invariants]: Bytes.PartialInvariantsProofs Dh.invariants where
+theorem Dh.invariantsProofs [BytesInvariants] [BytesInvariants.Has DhPk.invariants]: Bytes.PartialInvariantsProofs Dh.invariants where
   label_later := by
     intro _ x rec tr1 tr2
     cases x
     simp_all [DhPk.invariants, invariants, DY.ALaCarte.FunctorSizeOf.sizeOf, GetLabelLaterT] <;> grind
+
+end Definition
 
 #combine [BytesFunctor.Has SubF] [ExecTraceTypes.Has Broken.ExecEntryT] into
   BytesInvariants,
@@ -394,10 +409,8 @@ end DiffieHellman'
 
 section ExtractDhSk
 
-variable [ExecTraceTypes] [ProofTraceTypes]
 variable [BytesFunctor]
 variable [BytesFunctor.Has DiffieHellman'.SubF]
-variable [ExecTraceTypes.Has DiffieHellman'.Broken.ExecEntryT]
 
 noncomputable
 def DiffieHellman'.extractDhSk (pk: Bytes): Option Bytes :=
@@ -406,20 +419,23 @@ def DiffieHellman'.extractDhSk (pk: Bytes): Option Bytes :=
     some sk
   | none => none
 
-theorem DiffieHellman'.dh_pk_extractDhSk (b: Bytes):
+theorem DiffieHellman'.dhPk_extractDhSk (b: Bytes):
   match extractDhSk b with
   | none => True
-  | some sk => b = DiffieHellman'.dh_pk sk
+  | some sk => b = DiffieHellman'.dhPk sk
 := by
-  simp [extractDhSk, DiffieHellman'.dh_pk]
+  simp [extractDhSk, DiffieHellman'.dhPk]
   grind
+
+variable [ExecTraceTypes] [ProofTraceTypes]
+variable [ExecTraceTypes.Has DiffieHellman'.Broken.ExecEntryT]
 
 theorem DiffieHellman'.extractDhSk.preserves_WellFormed
   [BytesInvariants] [BytesInvariants.Has DiffieHellman'.invariants]
 : ExtractPreservesWellFormed extractDhSk
 := by
   simp [ExtractPreservesWellFormed]
-  grind [DiffieHellman'.dh_pk_extractDhSk, DiffieHellman'.dh_pk.WellFormed]
+  grind [DiffieHellman'.dhPk_extractDhSk, DiffieHellman'.dhPk.WellFormed]
 
 public
 noncomputable
@@ -430,16 +446,16 @@ def Bytes.dhSkLabel'
   Bytes.xxxLabel DiffieHellman'.extractDhSk pk tr
 
 public
-theorem Bytes.dhSkLabel'_dh_pk
+theorem Bytes.dhSkLabel'_dhPk
   [BytesInvariants]
   [BytesInvariants.Has DiffieHellman'.invariants]
   (sk: Bytes) (tr: ProofTrace)
-  : (DiffieHellman'.dh_pk sk).dhSkLabel' tr = sk.label tr
+  : (DiffieHellman'.dhPk sk).dhSkLabel' tr = sk.label tr
 := by
-  simp [Bytes.dhSkLabel', Bytes.xxxLabel, DiffieHellman'.extractDhSk, DiffieHellman'.dh_pk]
+  simp [Bytes.dhSkLabel', Bytes.xxxLabel, DiffieHellman'.extractDhSk, DiffieHellman'.dhPk]
   grind
 
-grind_pattern Bytes.dhSkLabel'_dh_pk => (DiffieHellman'.dh_pk sk).dhSkLabel' tr
+grind_pattern Bytes.dhSkLabel'_dhPk => (DiffieHellman'.dhPk sk).dhSkLabel' tr
 
 public
 theorem Bytes.dhSkLabel'_later
@@ -489,11 +505,11 @@ theorem dh.WellFormed
   simp only [dh]
   split
   · rename_i sk2 heq
-    have: pk = dh_pk sk2 := by simp_all [dh_pk]; grind [dh_pk]
+    have: pk = dhPk sk2 := by simp_all [dhPk]; grind [dhPk]
     split
     all_goals
       simp [Dh.invariants, DhPk.invariants]
-      grind [dh_pk.WellFormed]
+      grind [dhPk.WellFormed]
   · simp [Dh.invariants]
 
 @[simp]
@@ -518,7 +534,7 @@ theorem dh.Invariant
   : (
       pk.Invariant tr ∧
       sk.Invariant tr ∧
-      (sk.label tr).canFlow (Broken.label (dh_pk sk)) tr.erase
+      (sk.label tr).canFlow (Broken.label (dhPk sk)) tr.erase
     ) → (
       (dh pk sk).Invariant tr
     )
@@ -549,10 +565,10 @@ public
 instance
   (sk: Bytes)
   : HoareTriplePure
-    (dh_pk sk)
+    (dhPk sk)
     (fun tr =>
       sk.Invariant tr ∧
-      (sk.label tr).canFlow (Broken.label (dh_pk sk)) tr.erase
+      (sk.label tr).canFlow (Broken.label (dhPk sk)) tr.erase
     )
     (fun res tr =>
       res.Invariant tr ∧
@@ -561,7 +577,7 @@ instance
     )
   where
     pf := by
-      grind [dh_pk.Invariant, dh_pk.label]
+      grind [dhPk.Invariant, dhPk.label]
 
 public
 instance
@@ -570,7 +586,7 @@ instance
     (dh pk sk)
     (fun tr =>
       sk.Invariant tr ∧
-      (sk.label tr).canFlow (Broken.label (dh_pk sk)) tr.erase ∧
+      (sk.label tr).canFlow (Broken.label (dhPk sk)) tr.erase ∧
       pk.Publishable tr
       -- and usage
     )
@@ -594,13 +610,13 @@ variable [ExecTraceTypes.Has Broken.ExecEntryT]
 variable [BytesInvariants.Has invariants]
 
 public
-instance: SubAttackerKnowledgeTheorem dh_pk.attackerKnowledge where
+instance: SubAttackerKnowledgeTheorem dhPk.attackerKnowledge where
   pf := by
-    simp only [dh_pk.attackerKnowledge]
+    simp only [dhPk.attackerKnowledge]
     intro out tr h_tr ⟨sk, ⟨ h_out, h_sk ⟩⟩
     subst h_out
     simp_all [Bytes.Publishable]
-    grind [dh_pk.Invariant, canFlowTrans]
+    grind [dhPk.Invariant, canFlowTrans]
 
 public
 instance: SubAttackerKnowledgeTheorem dh.attackerKnowledge where
@@ -615,7 +631,7 @@ end AttackerKnowledgeTheorem
 section AttackerKnowledgeTheorem
 
 #combine [BytesFunctor.Has SubF] [ExecTraceTypes.Has Broken.ExecEntryT] [BytesInvariants.Has invariants] into SubAttackerKnowledgeTheorem' from
-  dh_pk,
+  dhPk,
   dh
 
 end AttackerKnowledgeTheorem
@@ -640,9 +656,9 @@ theorem dhPkInvert.spec (pk: Bytes)
   split
   · grind
   rename_i sk _
-  have: pk = dh_pk sk := by grind [dhPk_dhPkInvert pk]
-  have h: (dh_pk sk).Publishable tr := by grind
-  simp only [dh_pk, Bytes.Publishable] at h
+  have: pk = dhPk sk := by grind [dhPk_dhPkInvert pk]
+  have h: (dhPk sk).Publishable tr := by grind
+  simp only [dhPk, Bytes.Publishable] at h
   simp only [Bytes.Invariant.eq, DiffieHellman'.DhPk.invariants] at h
   simp only [Label.canFlow, Broken.label, Broken.ThisDhPkHasBeenBroken] at h
   simp only [Bytes.Publishable]
@@ -674,7 +690,6 @@ theorem breakDhPk.spec (msgHandle: Nat)
   unfold breakDhPk
   step
   step by simp [ProtocolEvent.EventInv.invariant]
-  step
   step
   step
   grind

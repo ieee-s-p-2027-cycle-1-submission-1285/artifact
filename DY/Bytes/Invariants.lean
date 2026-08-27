@@ -19,7 +19,6 @@ variable [ExecTraceTypes] [ProofTraceTypes]
 
 -- Well formed
 
-@[expose]
 public
 abbrev BytesWellFormedT := ProofTrace → Prop
 
@@ -92,7 +91,6 @@ def Usage.nothing: Usage where
   tag := ""
   data := none
 
-@[expose]
 public
 abbrev GetUsageT := ProofTrace → Usage
 
@@ -153,7 +151,6 @@ grind_pattern Bytes.usage_later => Bytes.usage b tr1, tr1 ≤ tr2
 
 -- Label
 
-@[expose]
 public
 abbrev GetLabelT := ProofTrace → Label
 
@@ -214,7 +211,6 @@ grind_pattern Bytes.label_later => Bytes.label b tr1, tr1 ≤ tr2
 
 -- Invariant
 
-@[expose]
 public
 abbrev BytesInvariantT := ProofTrace → Prop
 
@@ -428,7 +424,7 @@ where
   invariant := Bytes.PartialFunction.combine (fun id => (invs id).invariant)
 
 public
-def Bytes.PartialInvariantsProofs.combine
+theorem Bytes.PartialInvariantsProofs.combine
   [BytesInvariants]
   {t: Type} [DecidableEq t] [Ord t] [Std.LawfulEqOrd t] [Std.TransOrd t]
   {SubFs: t → Type → Type} [∀ id, SubBytesFunctor (SubFs id)]
@@ -706,6 +702,7 @@ macro_rules
       refereeName := `SubF
       combineName := ``DY.Bytes.PartialInvariants.combine
       outTypeName := ``DY.Bytes.PartialInvariants
+      isTheorem := false
     }
 
     let hasStep ← mkHasStep hasStepParams sources <| .makeSimple {
@@ -733,6 +730,7 @@ macro_rules
       refereeName := `invariants
       combineName := ``DY.Bytes.PartialInvariantsProofs.combine
       outTypeName := ``DY.Bytes.PartialInvariantsProofs
+      isTheorem := true
     }
 
     let invariantsProofsStx := Lean.mkIdent `invariantsProofs

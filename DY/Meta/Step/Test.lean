@@ -1,3 +1,5 @@
+module
+
 import DY.Trace
 import DY.Bytes
 import DY.Meta
@@ -10,6 +12,10 @@ variable [ExecTraceTypes] [ProofTraceTypes] [TraceInvariant]
 variable [BytesFunctor]
 variable [BytesInvariants]
 variable [BytesInvariantsProofs]
+
+section Axiomatization
+
+set_option warn.sorry false
 
 def hash (b: Bytes): Bytes := sorry
 def test_publishable (b: Bytes): Bool := sorry
@@ -32,8 +38,6 @@ def receive_message (n:Nat) : Traceful Bytes := sorry
 abbrev is_knowable_by (b: Bytes) (l: Label) (tr: ProofTrace): Prop :=
   b.Invariant tr ∧
   (b.label tr).canFlow l tr.erase
-
-set_option trace.Step true
 
 instance:
   HoareTriple
@@ -77,6 +81,7 @@ instance:
   where
     pf := sorry
 
+end Axiomatization
 
 def test (b:Bytes) (b2: Bytes): Traceful Bytes := do
   let msg1 ← receive_message 0
@@ -110,18 +115,15 @@ example:
   step
   grind
 
-set_option trace.Step false
-
 -- Test mark_non_monotone (hypothesis h_msg1 must be dropped)
 
 section NonMonotoneHypothesis
 
-def testNonMonoPre: Traceful Unit := sorry
+section Axiomatization
 
-def testNonMono: Traceful Unit := do
-  testNonMonoPre
-  let msg ← receive_message 0
-  send_message msg
+set_option warn.sorry false
+
+def testNonMonoPre: Traceful Unit := sorry
 
 opaque nonMonotoneProperty (tr: ProofTrace): Prop
 
@@ -132,6 +134,13 @@ instance:
     (fun _ _ => True)
   where
     pf := sorry
+
+end Axiomatization
+
+def testNonMono: Traceful Unit := do
+  testNonMonoPre
+  let msg ← receive_message 0
+  send_message msg
 
 /--
 trace: inst✝⁵ : ExecTraceTypes
@@ -235,6 +244,10 @@ end UnprovedPrecondition
 
 section UnifyGhostArgumentType
 
+section Axiomatization
+
+set_option warn.sorry false
+
 def mk_rand_bis (len:Nat) : Traceful Bytes := sorry
 
 instance: HasGhostArgumentType (mk_rand_bis len) ((Bytes → Label) × String) where
@@ -248,6 +261,8 @@ instance (len: Nat) (lab: Bytes → Label) (usg: String):
     (fun b tr => is_knowable_by b (lab b) tr)
   where
     pf := sorry
+
+end Axiomatization
 
 def testUnifyGhostType: Traceful Unit := do
   let b ← mk_rand_bis 32
@@ -271,6 +286,10 @@ section IncrementalCleanup
 -- - x: Unit
 -- - h: True
 
+section Axiomatization
+
+set_option warn.sorry false
+
 def weirdUnitFunction: Traceful Unit := sorry
 
 instance:
@@ -280,6 +299,8 @@ instance:
     (fun () _ => True)
   where
     pf := sorry
+
+end Axiomatization
 
 def testIncrementalCleanup: Traceful Unit := do
   let b ← receive_message 0
@@ -323,6 +344,10 @@ HoareTriple
 -- Test that we do not support post-conditions that actually reference the Unit value
 -- (we could add support, but why?)
 
+section Axiomatization
+
+set_option warn.sorry false
+
 def weirderUnitFunction: Traceful Unit := sorry
 
 instance:
@@ -332,6 +357,8 @@ instance:
     (fun res _ => res = ())
   where
     pf := sorry
+
+end Axiomatization
 
 def testIncrementalCleanup': Traceful Unit := do
   let b ← receive_message 0
@@ -353,8 +380,8 @@ tr : Trace ProofTrace.Entry
 h : tr.Invariant
 b : Bytes
 h_b✝ : b.Publishable tr
-x✝ : PUnit
-h_x✝ : x✝ = PUnit.unit
+__r✝ : PUnit
+h___r✝ : __r✝ = PUnit.unit
 ⊢ wp
     (do
       send_message b

@@ -53,7 +53,7 @@ theorem Array.compareLex_wfParam
 := by
   cases arr1; rename_i l1
   cases arr2; rename_i l2
-  simp only [Array.compareLex_eq_compareLex_toList, Array.toList_unattach, Array.attachWithSize_eq_attachWithSize_toList, wfParam, Array.mk.sizeOf_spec]
+  simp only [Array.compareLex_eq_compareLex_toList, Array.toList_unattach, Array.attachWithSize_eq_attachWithSize_toList, wfParam]
   fun_induction List.compareLex cmp l1 l2
   all_goals
   conv => rhs; unfold List.compareLex
@@ -131,17 +131,21 @@ theorem List.compareLex.into_attachWithSize.aux
   simp at h_n --?
   grind
 
-def List.compareLex.into_attachWith
+theorem List.compareLex.into_attachWith
   {α: Type} [SizeOf α]
   (l1 l2: List α)
   (cmp: α → α → Ordering)
+  : let n := (max (sizeOf l1) (sizeOf l2))
+    List.compareLex cmp l1 l2 = List.compareLex (fun x y => cmp x.val y.val) (List.attachWithSize l1 n (by grind)) (List.attachWithSize l2 n (by grind))
 :=
   List.compareLex.into_attachWithSize.aux l1 l2 (max (sizeOf l1) (sizeOf l2)) (by grind) cmp
 
-def List.compareLex.into_attachWith_flip
+theorem List.compareLex.into_attachWith_flip
   {α: Type} [SizeOf α]
   (l1 l2: List α)
   (cmp: α → α → Ordering)
+  : let n := (max (sizeOf l2) (sizeOf l1))
+    List.compareLex cmp l1 l2 = List.compareLex (fun x y => cmp x.val y.val) (List.attachWithSize l1 n (by grind)) (List.attachWithSize l2 n (by grind))
 :=
   List.compareLex.into_attachWithSize.aux l1 l2 (max (sizeOf l2) (sizeOf l1)) (by grind) cmp
 

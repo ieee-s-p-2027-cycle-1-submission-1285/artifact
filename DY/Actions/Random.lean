@@ -120,7 +120,7 @@ end AttackerKnowledge
 section Invariants
 
 variable [ExecTraceTypes] [ProofTraceTypes]
-variable [BytesFunctor] [BytesFunctor.Has SubF]
+variable [BytesFunctor]
 variable [ExecTraceTypes.Has ExecEntryT]
 variable [ProofTraceTypes.Has ProofEntryT]
 
@@ -148,7 +148,7 @@ public
 abbrev invariants: Bytes.PartialInvariants SubF := Random.Random.invariants
 
 public
-def Random.invariantsProofs [BytesInvariants]: Bytes.PartialInvariantsProofs Random.invariants where
+theorem Random.invariantsProofs [BytesInvariants]: Bytes.PartialInvariantsProofs Random.invariants where
   usage_later := by
     intro x rec tr1 tr2
     simp only [invariants]
@@ -162,6 +162,7 @@ def Random.invariantsProofs [BytesInvariants]: Bytes.PartialInvariantsProofs Ran
 public
 abbrev invariantsProofs [BytesInvariants]: Bytes.PartialInvariantsProofs invariants := Random.Random.invariantsProofs
 
+variable [BytesFunctor.Has SubF]
 variable [BytesInvariants] [BytesInvariants.Has invariants]
 
 theorem makeRand.Invariant
